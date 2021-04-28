@@ -1,24 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { fetchUsers, fetchRepos } from "./modules";
+import { UserInput, GithubUsers, GithubRepos, ResetBtn } from "./modules";
+import "./modules/styles/styles.css";
+export const App:React.FC = () => {
+  const [users, setUsers] = useState({});
+  const [repos, setRepos] = useState<[]>([]);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState<string | null>(null);
 
-function App() {
+  const handleInput = (input: string): void => {
+    setUser(input);
+  }
+
+  const resetState = () => {
+    setUsers({});
+    setRepos([]);
+    setUser(null);
+  }
+
+  useEffect(() => {
+    fetchUsers("https://api.github.com/users/", user, setUsers, setError);
+  },[user]);
+
+  useEffect(() => {
+    fetchRepos("https://api.github.com/users/", user, setRepos, setError);
+  },[user]);
+
+  if(error)
+  {
+    return <div>{error}</div>
+  }
+
+  if(!users)
+  {
+    return <div>Loading...</div>
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {user === null ? <UserInput handleInput={handleInput} /> : ""}
+      {user !== null ? <GithubUsers data={users}/> : ""}
+      {user !== null ? <GithubRepos data={repos} /> : ""}
+      {user !== null ? <ResetBtn resetState={resetState} /> : ""}
     </div>
   );
 }
